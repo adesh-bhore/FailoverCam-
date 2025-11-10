@@ -55,7 +55,7 @@ def _cors(r):
     # Allow requests from Vercel domain (update with your actual domain)
     allowed_origins = [
         "http://localhost:5173",
-        "https://esp-stream-backend.vercel.app",
+        "https://FailoverCamSecurity.vercel.app",
         "*"  # Update this
     ]
     origin = request.headers.get('Origin')
