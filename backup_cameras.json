@@ -1,0 +1,21 @@
+[
+  {
+    "id": "backup_1",
+    "name": "Backup Camera 1",
+    "url": "http://192.168.193.141:8080/video",
+    "ip": "192.168.193.141",
+    "port": "8080",
+    "username": "",
+    "password": ""
+  },
+  {
+    "id": "backup_2_1762710853",
+    "name": "bk2",
+    "ip": "192.168.193.184",
+    "port": "8080",
+    "username": "",
+    "password": "",
+    "url": "http://192.168.193.184:8080/video",
+    "added_at": "2025-11-09T17:54:13.592455Z"
+  }
+]
