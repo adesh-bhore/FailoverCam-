@@ -48,19 +48,20 @@ os.environ.update({
 
 app = Flask(__name__)
 
-# Simple CORS support for frontend on localhost:5173
 # Simple CORS support for frontend
 @app.after_request
 def _cors(r):
-    # Allow requests from Vercel domain (update with your actual domain)
+    # Allow requests from Vercel domain and localhost
     allowed_origins = [
         "http://localhost:5173",
         "https://FailoverCamSecurity.vercel.app",
-        "*"  # Update this
     ]
     origin = request.headers.get('Origin')
-    if origin in allowed_origins:
+    if origin and origin in allowed_origins:
         r.headers["Access-Control-Allow-Origin"] = origin
+    else:
+        # Allow all origins for development (remove in production if needed)
+        r.headers["Access-Control-Allow-Origin"] = "*"
     r.headers["Access-Control-Allow-Methods"] = "GET, POST, DELETE, OPTIONS"
     r.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization, Range"
     r.headers["Access-Control-Expose-Headers"] = "Content-Range, Accept-Ranges, Content-Length"
