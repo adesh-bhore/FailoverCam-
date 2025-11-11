@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: ai-failover-server
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn main:app --bind 0.0.0.0:$PORT --workers 2 --threads 4 --timeout 120
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+```
+
+**If you still get issues on Render, try these alternatives:**
+
+1. If you get OpenCV-related errors, you might need system dependencies. Add a `apt-packages` file:
+```
+libgl1-mesa-glx
+libglib2.0-0
+```
+
+2. If memory issues occur, reduce the number of Gunicorn workers in the Procfile:
+```
+web: gunicorn main:app --bind 0.0.0.0:$PORT --workers 1 --threads 2 --timeout 120

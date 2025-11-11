@@ -1,20 +1,24 @@
-# Build tools (must be first)
-setuptools>=68.0.0
-wheel>=0.41.0
-pip>=23.0.0
+# Web Framework
+Flask==3.0.0
+Werkzeug==3.0.1
 
-# Core dependencies
-Flask>=3.0.0
-gunicorn>=21.2.0
-requests>=2.31.0
+# Computer Vision & ML
+opencv-python-headless==4.8.1.78
+numpy==1.24.3
 
-# Computer vision and AI
-opencv-python-headless>=4.8.0,<5.0.0
-numpy>=1.24.0,<2.0.0
+# Roboflow Inference
+inference==0.9.13
+inference-sdk==0.9.13
 
-# Roboflow packages
-# Supervision - use version compatible with Python 3.11 (< 3.12)
-supervision>=0.18.0,<0.30.0
+# Supervision (for annotations)
+supervision==0.16.0
 
-# Inference - install from Roboflow GitHub repository
-git+https://github.com/roboflow/inference.git@main
+# HTTP Requests
+requests==2.31.0
+
+# WSGI Server for production
+gunicorn==21.2.0
+
+# Additional dependencies that might be needed
+Pillow==10.1.0
+python-dateutil==2.8.2
