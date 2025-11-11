@@ -11,6 +11,7 @@ from inference.core.interfaces.camera.entities import VideoFrame
 import supervision as sv
 import socket
 from urllib.parse import urlparse
+import traceback
 # --- add at top ---
 import socket, statistics
 from collections import deque
@@ -160,7 +161,6 @@ def load_backup_cameras():
             return backup_cameras
     except Exception as e:
         print(f"DEBUG: Exception in load_backup_cameras: {str(e)}", flush=True)
-        import traceback
         print(f"DEBUG: Traceback: {traceback.format_exc()}", flush=True)
         add_log("BACKUP_CAMERAS_LOAD_ERROR", f"Error loading backup cameras: {str(e)}")
         return []
@@ -182,7 +182,6 @@ def save_backup_cameras(backup_cameras):
             print(f"DEBUG: save_backup_cameras() completed", flush=True)
     except Exception as e:
         print(f"DEBUG: Exception in save_backup_cameras: {str(e)}", flush=True)
-        import traceback
         print(f"DEBUG: Traceback: {traceback.format_exc()}", flush=True)
         add_log("BACKUP_CAMERAS_SAVE_ERROR", f"Error saving backup cameras: {str(e)}")
 
@@ -2011,19 +2010,11 @@ if __name__ == '__main__':
     # Initialize backup cameras (load from file or create initial entry)
     try:
         backup_cameras_list = get_backup_cameras()
-    #   add_log("BACKUP_CAMERAS_INIT", f"Loaded {len(backup_cameras_list)} backup camera(s)")
-        for i, cam in enumerate(backup_cameras_list, 1):
-           # add_log("BACKUP_CAMERA_INFO", f"Backup Camera {i}: {cam.get('name', 'Unnamed')} - {cam.get('ip')}:{cam.get('port')}")
+        for i, cam in enumerate(backup_cameras_list, 1):     # no need to log this
     except Exception as e:
-       # add_log("BACKUP_CAMERAS_ERROR", f"Error loading backup cameras: {str(e)}")
-        import traceback
-       # add_log("BACKUP_CAMERAS_ERROR_TRACE", f"Traceback: {traceback.format_exc()}")
         backup_cameras_list = []
 
-    # NOTE: Threads are NOT started automatically on Flask startup
-    # They will be started via /stream/start endpoint when needed
-    #add_log("FLASK_START", "Flask server starting (threads will start on demand)")
-    
+  
     # For Render, use environment variable PORT or default to 8000
     port = int(os.environ.get('PORT', 8000))
     app.run(host='0.0.0.0', port=port, threaded=True)
