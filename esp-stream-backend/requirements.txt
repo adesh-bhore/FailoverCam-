@@ -1,24 +1,11 @@
-# Web Framework
 Flask==3.0.0
 Werkzeug==3.0.1
-
-# Computer Vision & ML
 opencv-python-headless==4.8.1.78
 numpy==1.24.3
-
-# Roboflow Inference
 inference==0.9.13
 inference-sdk==0.9.13
-
-# Supervision (for annotations)
 supervision==0.16.0
-
-# HTTP Requests
 requests==2.31.0
-
-# WSGI Server for production
 gunicorn==21.2.0
-
-# Additional dependencies that might be needed
 Pillow==10.1.0
 python-dateutil==2.8.2
