@@ -2005,16 +2005,15 @@ def stop_stream_threads():
 
 # ========= MAIN =========
 if __name__ == '__main__':
-    #add_log("SYSTEM_START", "AI Failover Server starting")
-   
+    
     # Initialize backup cameras (load from file or create initial entry)
     try:
         backup_cameras_list = get_backup_cameras()
-        for i, cam in enumerate(backup_cameras_list, 1):     # no need to log this
+        # Successfully loaded backup cameras
     except Exception as e:
+        import traceback
         backup_cameras_list = []
 
-  
     # For Render, use environment variable PORT or default to 8000
     port = int(os.environ.get('PORT', 8000))
     app.run(host='0.0.0.0', port=port, threaded=True)
