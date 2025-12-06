@@ -1,0 +1,11 @@
+[
+  {
+    "id": "backup_1",
+    "name": "Backup Camera 1",
+    "url": "http://192.168.193.141:8080/video",
+    "ip": "192.168.193.141",
+    "port": "8080",
+    "username": "",
+    "password": ""
+  }
+]

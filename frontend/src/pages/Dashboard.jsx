@@ -4,6 +4,8 @@ import LogTerminal from '../components/LogTerminal'
 import NetworkHealth from '../components/NetworkHealth'
 import MapView from '../components/MapView'
 import GlitchText from '../components/GlitchText'
+import VoiceAnnouncer from '../components/VoiceAnnouncer'
+
 function Dashboard() {
   const [detections, setDetections] = useState([
     { type: 'Person', time: '14:42:15', confidence: 95, severity: 'warning' },
@@ -18,12 +20,13 @@ function Dashboard() {
   const [streamStarting, setStreamStarting] = useState(false)
   const [streamStopping, setStreamStopping] = useState(false)
   const [streamThreadsStarted, setStreamThreadsStarted] = useState(false)
+  const [lastAlertId, setLastAlertId] = useState(0) // Track last alert for voice announcements
 
   useEffect(() => {
     // Check navigation source from localStorage
     const source = localStorage.getItem('navigationSource')
     setNavigationSource(source)
-    
+
     // Check if stream threads are already started
     const checkStreamStatus = async () => {
       try {
@@ -35,10 +38,10 @@ function Dashboard() {
       }
     }
     checkStreamStatus()
-    
+
     // Periodically check stream status
     const statusInterval = setInterval(checkStreamStatus, 5000)
-    
+
     return () => {
       clearInterval(statusInterval)
     }
@@ -74,7 +77,7 @@ function Dashboard() {
         if (data.fps) {
           const currentFps = Math.round(data.fps)
           setFps(currentFps)
-          
+
           // If FPS > 0, stream is available
           if (currentFps > 0 && !streamAvailable) {
             setStreamAvailable(true)
@@ -99,12 +102,44 @@ function Dashboard() {
     // Set up intervals
     const statusInterval = setInterval(fetchFeedStatus, 3000)
     const healthInterval = setInterval(fetchHealth, 2000)
-    
+
     return () => {
       clearInterval(statusInterval)
       clearInterval(healthInterval)
     }
   }, [streamAvailable])
+
+  // Monitor alerts for voice announcements during camera failover
+  useEffect(() => {
+    const fetchAlertsForVoice = async () => {
+      try {
+        const response = await fetch('http://127.0.0.1:8000/alerts')
+        const alerts = await response.json()
+
+        // Check for new alerts with voice messages
+        if (alerts.length > 0) {
+          const latestAlert = alerts[0] // Alerts are returned newest first
+
+          // If this is a new alert and it has a voice message, speak it
+          if (latestAlert.id > lastAlertId && latestAlert.speak_message) {
+            console.log('🔊 Voice alert triggered:', latestAlert.speak_message)
+            VoiceAnnouncer.speak(latestAlert.speak_message)
+            setLastAlertId(latestAlert.id)
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching alerts for voice:', error)
+      }
+    }
+
+    // Initial fetch
+    fetchAlertsForVoice()
+
+    // Check for new voice alerts every 2 seconds
+    const alertsInterval = setInterval(fetchAlertsForVoice, 2000)
+
+    return () => clearInterval(alertsInterval)
+  }, [lastAlertId])
 
   return (
     <div className="space-y-6 relative z-10">
@@ -129,21 +164,20 @@ function Dashboard() {
             <div className="absolute top-2 right-2 w-6 h-6 border-t-2 border-r-2 border-neon-primary"></div>
             <div className="absolute bottom-2 left-2 w-6 h-6 border-b-2 border-l-2 border-neon-primary"></div>
             <div className="absolute bottom-2 right-2 w-6 h-6 border-b-2 border-r-2 border-neon-primary"></div>
-            
+
             <div className="flex items-center justify-between mb-4 relative z-10">
               <div>
-                <h3 className="text-xl font-orbitron font-bold text-neon-primary flex items-center gap-2" style={{textShadow: '0 0 3px rgba(0, 255, 195, 0.4)'}}>
+                <h3 className="text-xl font-orbitron font-bold text-neon-primary flex items-center gap-2" style={{ textShadow: '0 0 3px rgba(0, 255, 195, 0.4)' }}>
                   <span className="w-2 h-2 bg-neon-primary rounded-full animate-pulse"></span>
                   {activeFeed === 'primary' ? 'PRIMARY CAMERA A' : 'BACKUP CAMERA B'}
                 </h3>
                 <p className="text-xs text-text-light/50 font-mono mt-1">SYSTEM_ID: {activeFeed.toUpperCase()}_001</p>
               </div>
               <div className="flex items-center gap-2">
-                <span className={`px-4 py-2 rounded-lg text-xs font-orbitron font-bold uppercase tracking-wider ${
-                  activeFeed === 'primary' 
-                    ? 'bg-neon-primary/30 text-neon-primary border border-neon-primary neon-glow' 
-                    : 'bg-yellow-500/30 text-yellow-400 border border-yellow-400 neon-glow-yellow'
-                }`}>
+                <span className={`px-4 py-2 rounded-lg text-xs font-orbitron font-bold uppercase tracking-wider ${activeFeed === 'primary'
+                  ? 'bg-neon-primary/30 text-neon-primary border border-neon-primary neon-glow'
+                  : 'bg-yellow-500/30 text-yellow-400 border border-yellow-400 neon-glow-yellow'
+                  }`}>
                   {activeFeed === 'primary' ? 'PRIMARY' : 'BACKUP'}
                 </span>
                 <span className="px-4 py-2 bg-neon-primary/30 text-neon-primary rounded-lg text-xs font-orbitron font-bold uppercase tracking-wider border border-neon-primary neon-glow flex items-center gap-2">
@@ -152,17 +186,17 @@ function Dashboard() {
                 </span>
               </div>
             </div>
-            
+
             <div className="aspect-video bg-slate-900/50 rounded-lg mb-4 flex items-center justify-center relative overflow-hidden scan-line border border-neon-primary/50">
               {/* Grid overlay */}
               <div className="absolute inset-0 cyber-grid opacity-30"></div>
-              
+
               {/* Corner indicators */}
               <div className="absolute top-0 left-0 w-20 h-20 border-t-4 border-l-4 border-neon-primary/50"></div>
               <div className="absolute top-0 right-0 w-20 h-20 border-t-4 border-r-4 border-neon-primary/50"></div>
               <div className="absolute bottom-0 left-0 w-20 h-20 border-b-4 border-l-4 border-neon-primary/50"></div>
               <div className="absolute bottom-0 right-0 w-20 h-20 border-b-4 border-r-4 border-neon-primary/50"></div>
-              
+
               {streamAvailable || fps > 0 ? (
                 <>
                   <img
@@ -203,14 +237,14 @@ function Dashboard() {
                   <p className="text-text-light/70 font-orbitron text-sm mb-1">INITIALIZING STREAM...</p>
                   <p className="text-text-light/40 font-mono text-xs">Establishing connection to camera feed</p>
                   <div className="mt-4 flex gap-1">
-                    <div className="w-2 h-2 bg-neon-primary rounded-full animate-bounce" style={{animationDelay: '0s'}}></div>
-                    <div className="w-2 h-2 bg-neon-primary rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
-                    <div className="w-2 h-2 bg-neon-primary rounded-full animate-bounce" style={{animationDelay: '0.4s'}}></div>
+                    <div className="w-2 h-2 bg-neon-primary rounded-full animate-bounce" style={{ animationDelay: '0s' }}></div>
+                    <div className="w-2 h-2 bg-neon-primary rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                    <div className="w-2 h-2 bg-neon-primary rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
                   </div>
                 </div>
               )}
             </div>
-            
+
             <div className="flex items-center justify-between text-sm relative z-10">
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-2">
@@ -257,13 +291,12 @@ function Dashboard() {
                     }
                   }}
                   disabled={navigationSource !== 'auth' || streamThreadsStarted || streamStarting || streamStopping}
-                  className={`px-4 py-2 rounded-lg text-xs font-orbitron font-bold uppercase tracking-wider border transition-all duration-300 flex items-center gap-2 ${
-                    navigationSource !== 'auth' || streamThreadsStarted
-                      ? 'bg-slate-secondary/30 text-text-light/50 border-neon-primary/20 cursor-not-allowed'
-                      : streamStarting
+                  className={`px-4 py-2 rounded-lg text-xs font-orbitron font-bold uppercase tracking-wider border transition-all duration-300 flex items-center gap-2 ${navigationSource !== 'auth' || streamThreadsStarted
+                    ? 'bg-slate-secondary/30 text-text-light/50 border-neon-primary/20 cursor-not-allowed'
+                    : streamStarting
                       ? 'bg-yellow-500/30 text-yellow-400 border-yellow-400 neon-glow-yellow'
                       : 'bg-neon-primary/30 text-neon-primary border-neon-primary neon-glow hover:bg-neon-primary/40 cursor-pointer'
-                  }`}
+                    }`}
                 >
                   {streamThreadsStarted ? (
                     <>
@@ -314,13 +347,12 @@ function Dashboard() {
                     }
                   }}
                   disabled={!streamThreadsStarted || streamStopping || streamStarting}
-                  className={`px-4 py-2 rounded-lg text-xs font-orbitron font-bold uppercase tracking-wider border transition-all duration-300 flex items-center gap-2 ${
-                    !streamThreadsStarted
-                      ? 'bg-slate-secondary/30 text-text-light/50 border-neon-primary/20 cursor-not-allowed'
-                      : streamStopping
+                  className={`px-4 py-2 rounded-lg text-xs font-orbitron font-bold uppercase tracking-wider border transition-all duration-300 flex items-center gap-2 ${!streamThreadsStarted
+                    ? 'bg-slate-secondary/30 text-text-light/50 border-neon-primary/20 cursor-not-allowed'
+                    : streamStopping
                       ? 'bg-orange-500/30 text-orange-400 border-orange-400 neon-glow-orange'
                       : 'bg-red-500/30 text-red-400 border-red-400 neon-glow-red hover:bg-red-500/40 cursor-pointer'
-                  }`}
+                    }`}
                 >
                   {streamStopping ? (
                     <>

@@ -83,13 +83,11 @@ function AuthPage() {
         body: JSON.stringify({
           ip: formData.ipAddress,
           port: formData.port,
-          username: formData.username || '',
-          password: formData.password || ''
         })
       })
 
       const data = await response.json()
-
+  
       if (data.success) {
         setToast({ message: 'Stream reachability confirmed! Redirecting to dashboard...', type: 'success' })
         setTimeout(() => {

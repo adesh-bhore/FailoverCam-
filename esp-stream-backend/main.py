@@ -28,8 +28,8 @@ import json
 # ========= CONFIG =========
 ROBOFLOW_API_KEY = "haJwmWC3X0buWEYP3krX"
 MODEL_ID = "threat-detection-k4a3c/1"
-PRIMARY_URL = "http://192.168.193.159:8080/video"
-BACKUP_URL = "http://192.168.193.141:8080/video"  # Legacy backup URL, kept for backward compatibility
+PRIMARY_URL = "http://192.168.159.220:8080/video"
+BACKUP_URL = "http://192.168.244.156:8080/video"  # Legacy backup URL, kept for backward compatibility
 
 # Backup cameras configuration file
 BACKUP_CAMERAS_FILE = "backup_cameras.json"
@@ -345,7 +345,7 @@ def add_log(tag, message):
 
 
 # ========= ALERT FUNCTION =========
-def add_alert(type, title, description, detected_objects=None, camera=None, confidence=None):
+def add_alert(type, title, description, detected_objects=None, camera=None, confidence=None, speak_message=None):
     """Thread-safe alert creation with duplicate prevention"""
     global alert_id_counter
     
@@ -375,7 +375,8 @@ def add_alert(type, title, description, detected_objects=None, camera=None, conf
             "status": "active",
             "acknowledged": False,
             "detected_objects": detected_objects or [],
-            "confidence": confidence
+            "confidence": confidence,
+            "speak_message": speak_message  # Voice announcement text
         }
         alerts.append(alert_entry)
         
@@ -819,6 +820,15 @@ def handle_blackout_failover():
     new_url, new_label, new_name = get_next_available_camera(current_camera_url)
     current_camera_url = new_url
     add_log("BLACKOUT_SWITCH", f"Switching to {new_label.upper()} feed ({new_name}: {new_url}) due to blackout.")
+    
+    # Add voice alert for blackout failover
+    add_alert(
+        type="warning",
+        title="Camera Failover - Blackout Detected",
+        description=f"Switching to {new_name} due to blackout on {current_feed} camera",
+        camera=new_name,
+        speak_message="Adesh Attention !! Camera failover detected, switching to backup"
+    )
 
     stop_flag = False
     threading.Thread(target=run_inference, args=(new_url, new_label), daemon=True).start()
@@ -896,6 +906,15 @@ def failover_watcher():
                 new_url, new_label, new_name = get_next_available_camera(current_url)
                 current_camera_url = new_url
                 add_log("SWITCH_FEED", f"Switching to {new_label.upper()} feed ({new_name}: {new_url})")
+                
+                # Add voice alert for connection failure failover
+                add_alert(
+                    type="warning",
+                    title="Camera Failover - Connection Lost",
+                    description=f"Switching to {new_name} due to connection failure",
+                    camera=new_name,
+                    speak_message="Adesh Attention !! Camera failover detected, switching to backup"
+                )
 
                 stop_flag = False
                 threading.Thread(target=run_inference, args=(new_url, new_label), daemon=True).start()
